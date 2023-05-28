@@ -1,6 +1,6 @@
 variable "mykey" {}
 variable "ami" {
-  description = "amazon linux 2 ami"
+  description = "amazon linux 2023 ami"
 }
 variable "region" {}
 variable "instance_type" {}

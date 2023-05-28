@@ -1,7 +1,7 @@
 //This Terraform Template creates a Jenkins Server using JDK 11 on EC2 Instance.
 //Jenkins Server is enabled with Git, Docker and Docker Compose,
 //AWS CLI Version 2, Python 3, Ansible, Terraform and Boto3.
-//Jenkins Server will run on Amazon Linux 2 EC2 Instance with
+//Jenkins Server will run on Amazon Linux 2023 EC2 Instance with
 //custom security group allowing HTTP(80, 8080) and SSH (22) connections from anywhere.
 
 provider "aws" {
@@ -17,9 +17,7 @@ resource "aws_instance" "tf-jenkins-server" {
   key_name      = var.mykey
   vpc_security_group_ids = [aws_security_group.tf-jenkins-sec-gr.id]
   iam_instance_profile = aws_iam_instance_profile.tf-jenkins-server-profile.name
-  ebs_block_device {
-    device_name = "/dev/xvda"
-    volume_type = "gp2"
+  root_block_device {
     volume_size = 16
   }
   tags = {
