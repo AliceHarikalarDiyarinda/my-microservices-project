@@ -1,4 +1,57 @@
-ingress {
+provider "aws" {
+  region  = "us-east-1"
+}
+
+module "iam" {
+  source = "./modules/IAM"
+}
+
+variable "sec-gr-mutual" {
+  default = "petclinic-k8s-mutual-sec-group"
+}
+
+variable "sec-gr-k8s-master" {
+  default = "petclinic-k8s-master-sec-group"
+}
+
+variable "sec-gr-k8s-worker" {
+  default = "petclinic-k8s-worker-sec-group"
+}
+
+data "aws_vpc" "name" {
+  default = true
+}
+
+resource "aws_security_group" "petclinic-mutual-sg" {
+  name = var.sec-gr-mutual
+  vpc_id = data.aws_vpc.name.id
+}
+
+resource "aws_security_group" "petclinic-kube-worker-sg" {
+  name = var.sec-gr-k8s-worker
+  vpc_id = data.aws_vpc.name.id
+
+  ingress {
+    protocol = "tcp"
+    from_port = 10250
+    to_port = 10250
+    security_groups = [aws_security_group.petclinic-mutual-sg.id]
+  }
+  ingress {
+    protocol = "tcp"
+    from_port = 30000
+    to_port = 32767
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    protocol = "tcp"
+    from_port = 22
+    to_port = 22
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
     protocol = "udp"
     from_port = 8472
     to_port = 8472
@@ -168,55 +221,4 @@ output worker-2-ip {
   value       = aws_instance.worker-2.public_ip
   sensitive   = false
   description = "public ip of the worker-2"
-}provider "aws" {
-  region  = "us-east-1"
 }
-
-module "iam" {
-  source = "./modules/IAM"
-}
-
-variable "sec-gr-mutual" {
-  default = "petclinic-k8s-mutual-sec-group"
-}
-
-variable "sec-gr-k8s-master" {
-  default = "petclinic-k8s-master-sec-group"
-}
-
-variable "sec-gr-k8s-worker" {
-  default = "petclinic-k8s-worker-sec-group"
-}
-
-data "aws_vpc" "name" {
-  default = true
-}
-
-resource "aws_security_group" "petclinic-mutual-sg" {
-  name = var.sec-gr-mutual
-  vpc_id = data.aws_vpc.name.id
-}
-
-resource "aws_security_group" "petclinic-kube-worker-sg" {
-  name = var.sec-gr-k8s-worker
-  vpc_id = data.aws_vpc.name.id
-
-  ingress {
-    protocol = "tcp"
-    from_port = 10250
-    to_port = 10250
-    security_groups = [aws_security_group.petclinic-mutual-sg.id]
-  }
-  ingress {
-    protocol = "tcp"
-    from_port = 30000
-    to_port = 32767
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  ingress {
-    protocol = "tcp"
-    from_port = 22
-    to_port = 22
-    cidr_blocks = ["0.0.0.0/0"]
-  }
